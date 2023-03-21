@@ -5,3 +5,7 @@ dotnet new webapi -n csvUploadApi -o WebApi
 dotnet new classlib -n csvUploadDomain -o Domain
 dotnet new classlib -n csvUploadServices -o Services
 dotnet new xunit -n csvUploadTest -o Tests
+
+cd Tests
+dotnet add package Microsoft.AspNetCore.TestHost
+dotnet add package Microsoft.Extensions.Configuration.Json;
