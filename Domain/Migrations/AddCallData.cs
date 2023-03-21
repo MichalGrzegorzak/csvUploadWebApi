@@ -14,7 +14,7 @@ public class AddCallData : Migration
             .WithColumn("CallStart").AsDateTime()
             .WithColumn("CallEnd").AsDateTime()
             .WithColumn("Duration").AsInt32()
-            .WithColumn("Cost").AsDecimal(6, 3)
+            .WithColumn("Cost").AsDecimal(9, 3)
             .WithColumn("Reference").AsString()
             .WithColumn("Currency").AsFixedLengthString(3);
     }
