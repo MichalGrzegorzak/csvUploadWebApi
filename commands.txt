@@ -6,6 +6,12 @@ dotnet new classlib -n csvUploadDomain -o Domain
 dotnet new classlib -n csvUploadServices -o Services
 dotnet new xunit -n csvUploadTest -o Tests
 
-cd Tests
+dotnet add package FluentMigrator
+dotnet add package FluentMigrator.Runner
+dotnet add package FluentMigrator.Runner.SqlServer
+
 dotnet add package Microsoft.AspNetCore.TestHost
-dotnet add package Microsoft.Extensions.Configuration.Json;
+dotnet add package Microsoft.Extensions.Configuration.Json
+
+#genereate migration name
+Get-Date -Format ‘yyyyMMddHHmmss’

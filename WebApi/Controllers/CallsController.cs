@@ -1,31 +1,44 @@
 using csvUploadDomain.Entities;
+using csvUploadServices;
 using Microsoft.AspNetCore.Mvc;
 
 namespace csvUploadApi.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("api/calls")]
 public class CallsController : ControllerBase
 {
-    private static readonly string[] Summaries = new[]
-    {
-        "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-    };
-
     private readonly ILogger<CallsController> _logger;
+    private readonly ICallRepository _callRepo;
 
-    public CallsController(ILogger<CallsController> logger)
+    public CallsController(ILogger<CallsController> logger, ICallRepository callRepo)
     {
         _logger = logger;
+        _callRepo = callRepo;
     }
 
-    [HttpGet(Name = "GetCalls")]
-    public IEnumerable<CallData> Get()
+    // [HttpGet(Name = "GetCalls")]
+    // public IEnumerable<CallData> Get()
+    // {
+    //     return Enumerable.Range(1, 5).Select(index => new CallData
+    //     {
+    //         Reference = Summaries[index]
+    //     })
+    //     .ToArray();
+    // }
+    
+    [HttpGet]
+    public async Task<IActionResult> GetCalls()
     {
-        return Enumerable.Range(1, 5).Select(index => new CallData
+        try
         {
-            Reference = Summaries[index]
-        })
-        .ToArray();
+            var calls = await _callRepo.GetCallData();
+            return Ok(calls);
+        }
+        catch (Exception ex)
+        {
+            //log error
+            return StatusCode(500, ex.Message);
+        }
     }
 }

@@ -8,27 +8,41 @@ public class SeedCallData : Migration
 {
     public override void Down()
     {
-        Delete.FromTable("CallData")
-            .Row(new CallData 
-            {
-                Id = new Guid("67fbac34-1ee1-4697-b916-1748861dd275"),
-            });
+        // Delete.FromTable("CallData")
+        //     .Row(new CallData 
+        //     {
+        //         Id = new Guid("67fbac34-1ee1-4697-b916-1748861dd275"),
+        //     });
+        Delete.FromTable("CallData").Row(null).AllRows();
     }
 
     public override void Up()
     {
         Insert.IntoTable("CallData")
-            .Row(new CallData
-            {
-                Id = new Guid("67fbac34-1ee1-4697-b916-1748861dd275"),
-                Cost = 123456.789m,
-                Currency = "GBP",
-                CallStart = DateTime.Now,
-                CallEnd = DateTime.Now.AddMinutes(66),
-                Duration = 66*60,
-                CallerId = "0100200300",
-                Recipient = "123456789",
-                Reference = "67fbac34"
-            });
+            .Row(CreateCallData(123456.789m, 100, "0100200300", "0400500600"));
+        
+        Insert.IntoTable("CallData")
+            .Row(CreateCallData(0.123m, 900, "0100200300", "0400500600"));
+        
+        Insert.IntoTable("CallData")
+            .Row(CreateCallData(0m, 9000, "0400500600", "0100200300"));
+    }
+
+    public static CallData CreateCallData(decimal cost, int seconds, string from, string to)
+    {
+        var date = DateTime.Now;
+
+        return new CallData
+        {
+            Id = Guid.NewGuid(),
+            Cost = cost,
+            Currency = "GBP",
+            CallStart = date,
+            CallEnd = date.AddSeconds(seconds),
+            Duration = seconds,
+            CallerId = from,
+            Recipient = to,
+            Reference = $"ref-{to}"
+        };
     }
 }

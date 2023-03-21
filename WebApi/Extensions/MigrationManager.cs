@@ -15,7 +15,17 @@ public static class MigrationManager
 
         var migrationService = scope.ServiceProvider.GetRequiredService<IMigrationRunner>();
         migrationService.ListMigrations();
-        migrationService.MigrateUp();
+        
+        try
+        {
+            migrationService.MigrateUp();
+        }
+        catch (Exception)
+        {
+            //we can revert to last stable
+            migrationService.MigrateDown(202303211434);
+        }
+        
 
         return host;
     }
