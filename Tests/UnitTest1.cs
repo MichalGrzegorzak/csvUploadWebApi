@@ -19,6 +19,6 @@ public class MyTests : IClassFixture<InjectionFixture>
     public void SomeTest()
     {
         var result = _callRepository.LetsTest();
-        result.Should().Be("success2");
+        result.Should().Be("success");
     }
 }

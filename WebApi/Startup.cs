@@ -13,9 +13,9 @@ namespace csvUploadApi
 			Configuration = configuration;
 		}
 
-		public IConfiguration Configuration { get; }
+		public IConfiguration Configuration { get; init; }
 		
-		public void ConfigureServices(IServiceCollection services)
+		public virtual void ConfigureServices(IServiceCollection services)
 		{
 			services.AddSingleton<DapperContext>();
 			services.AddSingleton<Database>();
@@ -33,7 +33,7 @@ namespace csvUploadApi
 			services.AddSwaggerGen();
 		}
 
-		public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+		public virtual void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 		{
 			if (env.IsDevelopment())
 			{
@@ -48,26 +48,6 @@ namespace csvUploadApi
 			{
 				endpoints.MapControllers();
 			});
-		}
-		
-		private ServiceProvider CreateServices()
-		{
-			return new ServiceCollection()
-				.AddFluentMigratorCore()
-				.ConfigureRunner(rb => rb
-					.AddSqlServer()
-					.WithGlobalConnectionString(Configuration.GetConnectionString("SqlConnection"))
-					.ScanIn(typeof(AddCallData).Assembly).For.Migrations())
-				// Enable logging to console in the FluentMigrator way
-				.AddLogging(lb => lb.AddFluentMigratorConsole())
-				// Build the service provider
-				.BuildServiceProvider(false);
-		}
-
-		void UpdateDatabase(IServiceProvider serviceProvider)
-		{
-			var runner = serviceProvider.GetRequiredService<IMigrationRunner>();
-			runner.MigrateUp();
 		}
 	}
 }
