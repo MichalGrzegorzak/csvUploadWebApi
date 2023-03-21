@@ -1,7 +1,7 @@
 #dotnet new -l
 #dotnet new web -n FirstWebApplication -o FOLDER
 
-dotnet new webapi -n Webapi -o Webapi
+dotnet new webapi -n csvUploadApi -o WebApi
 dotnet new classlib -n csvUploadDomain -o Domain
 dotnet new classlib -n csvUploadServices -o Services
 dotnet new xunit -n csvUploadTest -o Tests

@@ -1,9 +1,7 @@
-namespace csvUploadDomain.Entities;
+namespace csvUploadServices;
 
 public class CallCsvImport
 {
-    public Guid Id { get; set; }
-    
     public string CallerId { get; set; }
     public string Recipient { get; set; }
     public DateOnly CallDate { get; set; }
