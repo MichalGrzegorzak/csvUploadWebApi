@@ -1,4 +1,4 @@
-using csvUploadDomain;
+using csvUploadDomain.Entities;
 using Microsoft.AspNetCore.Mvc;
 
 namespace csvUploadApi.Controllers;
@@ -20,13 +20,11 @@ public class CallsController : ControllerBase
     }
 
     [HttpGet(Name = "GetCalls")]
-    public IEnumerable<WeatherForecast> Get()
+    public IEnumerable<CallData> Get()
     {
-        return Enumerable.Range(1, 5).Select(index => new WeatherForecast
+        return Enumerable.Range(1, 5).Select(index => new CallData
         {
-            Date = DateTime.Now.AddDays(index),
-            TemperatureC = Random.Shared.Next(-20, 55),
-            Summary = Summaries[Random.Shared.Next(Summaries.Length)]
+            Reference = Summaries[index]
         })
         .ToArray();
     }

@@ -1,9 +1,10 @@
 using csvUploadDomain.Context;
+using csvUploadServices;
 
 static void ConfigureServices(IServiceCollection services)
 {
     services.AddSingleton<DapperContext>();
-    //services.AddScoped<ICallRepository, CallRepository>();
+    services.AddScoped<ICallRepository, CallRepository>();
     
     services.AddControllers();
     // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
