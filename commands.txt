@@ -15,3 +15,6 @@ dotnet add package Microsoft.Extensions.Configuration.Json
 
 #genereate migration name
 Get-Date -Format ‘yyyyMMddHHmmss’
+
+
+
