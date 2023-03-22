@@ -8,30 +8,42 @@ public class SeedCallData : Migration
 {
     public override void Down()
     {
-        // Delete.FromTable("CallData")
-        //     .Row(new CallData 
-        //     {
-        //         Id = new Guid("67fbac34-1ee1-4697-b916-1748861dd275"),
-        //     });
+        //to delete individual records
+        // Delete.FromTable("CallData").Row(new CallData { Id = new Guid("67fbac34-1ee1-4697-b916-1748861dd275") });
+        
         Delete.FromTable("CallData").Row(null).AllRows();
     }
 
     public override void Up()
     {
-        Insert.IntoTable("CallData")
-            .Row(CreateCallData(123456.789m, 100, "0100200300", "0400500600"));
+        var today = DateTime.Today;
+        var yesterday = today.AddDays(-1);
+        var twoDaysAgo = today.AddDays(-2);
         
         Insert.IntoTable("CallData")
-            .Row(CreateCallData(0.123m, 900, "0100200300", "0400500600"));
+            .Row(CreateCallData(0, 1, "0100200300", "0400500600", twoDaysAgo));
+        Insert.IntoTable("CallData")
+            .Row(CreateCallData(0, 2, "0100200300", "0400500600", twoDaysAgo));
+        Insert.IntoTable("CallData")
+            .Row(CreateCallData(0, 3, "0400500600", "0100200300", twoDaysAgo));
         
         Insert.IntoTable("CallData")
-            .Row(CreateCallData(0m, 9000, "0400500600", "0100200300"));
+            .Row(CreateCallData(2, 10, "0100200300", "0400500600", yesterday));
+        Insert.IntoTable("CallData")
+            .Row(CreateCallData(3, 10, "0100200300", "0400500600", yesterday));
+        Insert.IntoTable("CallData")
+            .Row(CreateCallData(0m, 10, "0400500600", "0100200300", yesterday));
+        
+        Insert.IntoTable("CallData")
+            .Row(CreateCallData(123456.789m, 3600*25, "0100200300", "0400500600", today));
+        Insert.IntoTable("CallData")
+            .Row(CreateCallData(1.0m, 100, "0100200300", "0400500600", today));
+        Insert.IntoTable("CallData")
+            .Row(CreateCallData(0m, 10, "0400500600", "0100200300", today));
     }
 
-    public static CallData CreateCallData(decimal cost, int seconds, string from, string to)
+    public static CallData CreateCallData(decimal cost, int seconds, string from, string to, DateTime date)
     {
-        var date = DateTime.Now;
-
         return new CallData
         {
             Id = Guid.NewGuid(),

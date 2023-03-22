@@ -10,7 +10,7 @@ public interface ICallRepository
     Task<IEnumerable<CallData>> GetCallsData(DateTime from, DateTime? to = null);
     Task<IEnumerable<CallData>> GetXLongestCalls(int xCalls, DateTime from, DateTime? to = null);
     Task<IEnumerable<DateCount>> GetDailyAvgNumberOfCalls(DateTime from, DateTime? to = null);
-    Task<decimal> GetAvgCallCost(DateTime from, DateTime? to = null);
+    Task<decimal?> GetAvgCallCost(DateTime from, DateTime? to = null);
     Task<UploadInfo> UploadCsv();
 }
 
@@ -23,19 +23,9 @@ public class CallRepository : ICallRepository
         _context = context;
     }
 
-    private (DateTime from, DateTime? to) AdjustDates(DateTime from, DateTime? to = null)
-    {
-        to ??= SqlDateTime.MaxValue.Value;
-        
-        if (from == DateTime.MinValue)
-            from = SqlDateTime.MinValue.Value;
-
-        return (from, to);
-    }
-    
     public async Task<IEnumerable<CallData>> GetCallsData(DateTime from, DateTime? to = null)
     {
-        to ??= SqlDateTime.MaxValue.Value;
+        (from, to) = AdjustDatesForDb(from, to);
         
         var query = "SELECT * FROM CallData " +
                     "WHERE CallStart BETWEEN @from AND @to";
@@ -48,7 +38,7 @@ public class CallRepository : ICallRepository
     
     public async Task<IEnumerable<CallData>> GetXLongestCalls(int xCalls, DateTime from, DateTime? to = null)
     {
-        to ??= SqlDateTime.MaxValue.Value;
+        (from, to) = AdjustDatesForDb(from, to);
         
         var query = "SELECT top(@xCalls) * FROM CallData " +
                     "WHERE CallStart BETWEEN @from AND @to " +
@@ -62,6 +52,8 @@ public class CallRepository : ICallRepository
     
     public async Task<IEnumerable<DateCount>> GetDailyAvgNumberOfCalls(DateTime from, DateTime? to = null)
     {
+        (from, to) = AdjustDatesForDb(from, to);
+        
         var query = "SELECT CAST(CallStart as DATE), count(*) as count from CallData " +
                     "WHERE CallStart BETWEEN @from AND @to " +
                     "group by CAST(CallStart as DATE);";
@@ -72,23 +64,32 @@ public class CallRepository : ICallRepository
         return dateCounts.ToList();
     }
     
-    public async Task<decimal> GetAvgCallCost(DateTime from, DateTime? to = null)
+    public async Task<decimal?> GetAvgCallCost(DateTime from, DateTime? to = null)
     {
-        //to ??= SqlDateTime.MaxValue.Value;
-        (from, to) = AdjustDates(from, to);
+        (from, to) = AdjustDatesForDb(from, to);
         
         var query = "SELECT AVG(Cost) FROM CallData " +
                     "WHERE CallStart BETWEEN @from AND @to";
 
         using var connection = _context.CreateConnection();
         
-        var average = await connection.QuerySingleAsync<decimal>(query, new { from, to});
+        var average = await connection.QuerySingleAsync<decimal?>(query, new { from, to});
         return average;
     }
     
     public async Task<UploadInfo> UploadCsv()
     {
         return new UploadInfo(Success: true, Records: 123, Message: null);
+    }
+    
+    private static (DateTime from, DateTime? to) AdjustDatesForDb(DateTime from, DateTime? to = null)
+    {
+        to ??= SqlDateTime.MaxValue.Value;
+        
+        if (from == DateTime.MinValue)
+            from = SqlDateTime.MinValue.Value;
+
+        return (from, to);
     }
 }
 

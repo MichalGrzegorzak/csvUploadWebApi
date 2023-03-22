@@ -18,13 +18,11 @@ public class CallsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetCalls(DateTime from, DateTime? to = null)
+    public async Task<IActionResult> GetCalls([FromQuery]CallsRequestDto dto)
     {
-        to ??= DateTime.Today.AddDays(1);
-        
         try
         {
-            var calls = await _callRepo.GetCallsData(from, to.Value);
+            var calls = await _callRepo.GetCallsData(dto.From, dto.To);
             return Ok(calls);
         }
         catch (Exception ex)
@@ -34,58 +32,56 @@ public class CallsController : ControllerBase
         }
     }
     
-    // [HttpGet]
-    // public async Task<IActionResult> GetXLongestCalls(int topXcalls, DateTime from, DateTime? to = null)
-    // {
-    //     to ??= DateTime.Today.AddDays(1);
-    //     
-    //     try
-    //     {
-    //         var calls = await _callRepo.GetXLongestCalls(topXcalls, from, to.Value);
-    //         return Ok(calls);
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         _logger.LogError(ex, "GetXLongestCalls error");
-    //         return StatusCode(500, ex.Message);
-    //     }
-    // }
-    //
-    // [HttpGet]
-    // public async Task<IActionResult> GetDailyAvgNumberOfCalls(DateTime from, DateTime? to = null)
-    // {
-    //     to ??= DateTime.Today.AddDays(1);
-    //     
-    //     try
-    //     {
-    //         var dateCounts = await _callRepo.GetDailyAvgNumberOfCalls(from, to.Value);
-    //         return Ok(dateCounts);
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         _logger.LogError(ex, "GetDailyAvgNumberOfCalls error");
-    //         return StatusCode(500, ex.Message);
-    //     }
-    // }
-    //
-    // [HttpGet]
-    // public async Task<IActionResult> GetAvgCallCost(DateTime from, DateTime? to = null)
-    // {
-    //     to ??= DateTime.Today.AddDays(1);
-    //     
-    //     try
-    //     {
-    //         var avgCallCost = await _callRepo.GetAvgCallCost(from, to.Value);
-    //         return Ok(avgCallCost);
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         _logger.LogError(ex, "GetAvgCallCost error");
-    //         return StatusCode(500, ex.Message);
-    //     }
-    // }
-    //
+    [HttpGet]
+    [Route("GetXLongestCalls")]
+    public async Task<IActionResult> GetXLongestCalls(int topXcalls, [FromQuery]CallsRequestDto dto)
+    {
+        try
+        {
+            var calls = await _callRepo.GetXLongestCalls(topXcalls, dto.From, dto.To);
+            return Ok(calls);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "GetXLongestCalls error");
+            return StatusCode(500, ex.Message);
+        }
+    }
+    
+    [HttpGet]
+    [Route("GetDailyAvgNumberOfCalls")]
+    public async Task<IActionResult> GetDailyAvgNumberOfCalls([FromQuery]CallsRequestDto dto)
+    {
+        try
+        {
+            var dateCounts = await _callRepo.GetDailyAvgNumberOfCalls(dto.From, dto.To);
+            return Ok(dateCounts);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "GetDailyAvgNumberOfCalls error");
+            return StatusCode(500, ex.Message);
+        }
+    }
+    
+    [HttpGet]
+    [Route("GetAvgCallCost")]
+    public async Task<IActionResult> GetAvgCallCost([FromQuery]CallsRequestDto dto)
+    {
+        try
+        {
+            var avgCallCost = await _callRepo.GetAvgCallCost(dto.From, dto.To);
+            return Ok(avgCallCost);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "GetAvgCallCost error");
+            return StatusCode(500, ex.Message);
+        }
+    }
+    
     [HttpPost]
+    [Route("UploadCsv")]
     public async Task<IActionResult> UploadCsv()
     {
         try
@@ -99,4 +95,10 @@ public class CallsController : ControllerBase
             return StatusCode(500, ex.Message);
         }
     }
+}
+
+public class CallsRequestDto
+{
+    public DateTime From { get; set; }
+    public DateTime? To { get; set; }
 }

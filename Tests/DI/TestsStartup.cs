@@ -40,7 +40,6 @@ public class TestsStartup
                 .WithGlobalConnectionString(Configuration.GetConnectionString("SqlConnection"))
                 .ScanIn(typeof(AddCallData).Assembly).For.Migrations());
 
-        var ccc = Configuration.GetConnectionString("SqlConnection");
         //services.AddControllers();
         services.AddControllers().AddApplicationPart(Assembly.Load("csvUploadApi")).AddControllersAsServices();
 
