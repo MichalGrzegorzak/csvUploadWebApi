@@ -9,7 +9,10 @@ public interface ICallRepository
 {
     Task<IEnumerable<CallData>> GetCallsData(DateTime from, DateTime? to = null);
     Task<IEnumerable<CallData>> GetXLongestCalls(int xCalls, DateTime from, DateTime? to = null);
-    Task<IEnumerable<DateCount>> GetDailyAvgNumberOfCalls(DateTime from, DateTime? to = null);
+    Task<IEnumerable<DateCount>> GetNumberOfCallsPerDay(DateTime from, DateTime? to = null);
+    
+    Task<decimal?> GetAvgNumberOfCalls(DateTime from, DateTime? to = null);
+    //
     Task<decimal?> GetAvgCallCost(DateTime from, DateTime? to = null);
     Task<UploadInfo> UploadCsv();
 }
@@ -50,11 +53,11 @@ public class CallRepository : ICallRepository
         return calls.ToList();
     }
     
-    public async Task<IEnumerable<DateCount>> GetDailyAvgNumberOfCalls(DateTime from, DateTime? to = null)
+    public async Task<IEnumerable<DateCount>> GetNumberOfCallsPerDay(DateTime from, DateTime? to = null)
     {
         (from, to) = AdjustDatesForDb(from, to);
         
-        var query = "SELECT CAST(CallStart as DATE), count(*) as count from CallData " +
+        var query = "SELECT CAST(CallStart as DATE) as 'Date', count(*) as 'Count' from CallData " +
                     "WHERE CallStart BETWEEN @from AND @to " +
                     "group by CAST(CallStart as DATE);";
 
@@ -62,6 +65,20 @@ public class CallRepository : ICallRepository
         
         var dateCounts = await connection.QueryAsync<DateCount>(query, new { from, to});
         return dateCounts.ToList();
+    }
+    
+    public async Task<decimal?> GetAvgNumberOfCalls(DateTime from, DateTime? to = null)
+    {
+        (from, to) = AdjustDatesForDb(from, to);
+        
+        var query = "select AVG(CntPerDay) from (" +
+            " select count(d.Id) as CntPerDay from CallData d group by CAST(d.CallStart as DATE) " +
+            ") t";
+
+        using var connection = _context.CreateConnection();
+        
+        var average = await connection.QuerySingleAsync<decimal?>(query, new { from, to});
+        return average;
     }
     
     public async Task<decimal?> GetAvgCallCost(DateTime from, DateTime? to = null)
@@ -88,10 +105,33 @@ public class CallRepository : ICallRepository
         
         if (from == DateTime.MinValue)
             from = SqlDateTime.MinValue.Value;
+        
+        if (to == DateTime.MinValue)
+            to = SqlDateTime.MinValue.Value;
 
         return (from, to);
     }
 }
 
-public record DateCount(DateTime Date, int Count);
+public class DateCount
+{
+    public DateCount()
+    {
+    }
+    public DateCount(DateTime Date, int Count)
+    {
+        this.Date = Date;
+        this.Count = Count;
+    }
+
+    public DateTime Date { get; init; }
+    public int Count { get; init; }
+
+    public void Deconstruct(out DateTime Date, out int Count)
+    {
+        Date = this.Date;
+        Count = this.Count;
+    }
+}
+
 public record UploadInfo(bool Success, int Records, string? Message);

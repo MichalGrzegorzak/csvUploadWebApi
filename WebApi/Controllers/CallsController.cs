@@ -49,17 +49,33 @@ public class CallsController : ControllerBase
     }
     
     [HttpGet]
-    [Route("GetDailyAvgNumberOfCalls")]
-    public async Task<IActionResult> GetDailyAvgNumberOfCalls([FromQuery]CallsRequestDto dto)
+    [Route("GetNumberOfCallsPerDay")]
+    public async Task<IActionResult> GetNumberOfCallsPerDay([FromQuery]CallsRequestDto dto)
     {
         try
         {
-            var dateCounts = await _callRepo.GetDailyAvgNumberOfCalls(dto.From, dto.To);
+            var dateCounts = await _callRepo.GetNumberOfCallsPerDay(dto.From, dto.To);
             return Ok(dateCounts);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "GetDailyAvgNumberOfCalls error");
+            _logger.LogError(ex, "GetNumberOfCallsPerDay error");
+            return StatusCode(500, ex.Message);
+        }
+    }
+    
+    [HttpGet]
+    [Route("GetAvgNumberOfCalls")]
+    public async Task<IActionResult> GetAvgNumberOfCalls([FromQuery]CallsRequestDto dto)
+    {
+        try
+        {
+            var average = await _callRepo.GetAvgNumberOfCalls(dto.From, dto.To);
+            return Ok(average);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "GetAvgNumberOfCalls error");
             return StatusCode(500, ex.Message);
         }
     }
@@ -97,8 +113,4 @@ public class CallsController : ControllerBase
     }
 }
 
-public class CallsRequestDto
-{
-    public DateTime From { get; set; }
-    public DateTime? To { get; set; }
-}
+public record CallsRequestDto(DateTime From, DateTime? To);
