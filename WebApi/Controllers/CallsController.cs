@@ -9,12 +9,14 @@ namespace csvUploadApi.Controllers;
 public class CallsController : ControllerBase
 {
     private readonly ILogger<CallsController> _logger;
-    private readonly ICallRepository _callRepo;
+    private readonly ICallsRepository _callsRepo;
+    private readonly ICallsCsvImport _callsCsvImport;
 
-    public CallsController(ILogger<CallsController> logger, ICallRepository callRepo)
+    public CallsController(ILogger<CallsController> logger, ICallsRepository callsRepo, ICallsCsvImport callsCsvImport)
     {
         _logger = logger;
-        _callRepo = callRepo;
+        _callsRepo = callsRepo;
+        _callsCsvImport = callsCsvImport;
     }
 
     [HttpGet]
@@ -22,7 +24,7 @@ public class CallsController : ControllerBase
     {
         try
         {
-            var calls = await _callRepo.GetCallsData(dto.From, dto.To);
+            var calls = await _callsRepo.GetCallsData(dto.From, dto.To);
             return Ok(calls);
         }
         catch (Exception ex)
@@ -38,7 +40,7 @@ public class CallsController : ControllerBase
     {
         try
         {
-            var calls = await _callRepo.GetXLongestCalls(topXcalls, dto.From, dto.To);
+            var calls = await _callsRepo.GetXLongestCalls(topXcalls, dto.From, dto.To);
             return Ok(calls);
         }
         catch (Exception ex)
@@ -54,7 +56,7 @@ public class CallsController : ControllerBase
     {
         try
         {
-            var dateCounts = await _callRepo.GetNumberOfCallsPerDay(dto.From, dto.To);
+            var dateCounts = await _callsRepo.GetNumberOfCallsPerDay(dto.From, dto.To);
             return Ok(dateCounts);
         }
         catch (Exception ex)
@@ -70,7 +72,7 @@ public class CallsController : ControllerBase
     {
         try
         {
-            var average = await _callRepo.GetAvgNumberOfCalls(dto.From, dto.To);
+            var average = await _callsRepo.GetAvgNumberOfCalls(dto.From, dto.To);
             return Ok(average);
         }
         catch (Exception ex)
@@ -86,7 +88,7 @@ public class CallsController : ControllerBase
     {
         try
         {
-            var avgCallCost = await _callRepo.GetAvgCallCost(dto.From, dto.To);
+            var avgCallCost = await _callsRepo.GetAvgCallCost(dto.From, dto.To);
             return Ok(avgCallCost);
         }
         catch (Exception ex)
@@ -97,17 +99,35 @@ public class CallsController : ControllerBase
     }
     
     [HttpPost]
-    [Route("UploadCsv")]
-    public async Task<IActionResult> UploadCsv()
+    [Route("UploadCsvPerBatch")]
+    public async Task<IActionResult> UploadCsvPerBatch([FromForm] IFormFileCollection files)
     {
         try
         {
-            var result = await Task.FromResult(111);
+            var fileStream = files[0].OpenReadStream();
+            var result = await _callsCsvImport.UploadCallCsvImport(fileStream);
             return Ok(result);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "UploadCsv");
+            return StatusCode(500, ex.Message);
+        }
+    }
+    
+    [HttpPost]
+    [Route("UploadCsvBulk")]
+    public async Task<IActionResult> UploadCsvBulk([FromForm] IFormFileCollection files)
+    {
+        try
+        {
+            var fileStream = files[0].OpenReadStream();
+            var result = _callsCsvImport.UploadCallCsvImportBulk(fileStream);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "UploadCsv2");
             return StatusCode(500, ex.Message);
         }
     }

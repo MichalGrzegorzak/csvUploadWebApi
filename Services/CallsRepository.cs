@@ -5,7 +5,7 @@ using Dapper;
 
 namespace csvUploadServices;
 
-public interface ICallRepository
+public interface ICallsRepository
 {
     Task<IEnumerable<CallData>> GetCallsData(DateTime from, DateTime? to = null);
     Task<IEnumerable<CallData>> GetXLongestCalls(int xCalls, DateTime from, DateTime? to = null);
@@ -14,14 +14,13 @@ public interface ICallRepository
     Task<decimal?> GetAvgNumberOfCalls(DateTime from, DateTime? to = null);
     //
     Task<decimal?> GetAvgCallCost(DateTime from, DateTime? to = null);
-    Task<UploadInfo> UploadCsv();
 }
 
-public class CallRepository : ICallRepository
+public class CallsRepository : ICallsRepository
 {
     private readonly DapperContext _context;
 
-    public CallRepository(DapperContext context)
+    public CallsRepository(DapperContext context)
     {
         _context = context;
     }
@@ -94,11 +93,6 @@ public class CallRepository : ICallRepository
         return average;
     }
     
-    public async Task<UploadInfo> UploadCsv()
-    {
-        return new UploadInfo(Success: true, Records: 123, Message: null);
-    }
-    
     private static (DateTime from, DateTime? to) AdjustDatesForDb(DateTime from, DateTime? to = null)
     {
         to ??= SqlDateTime.MaxValue.Value;
@@ -133,5 +127,3 @@ public class DateCount
         Count = this.Count;
     }
 }
-
-public record UploadInfo(bool Success, int Records, string? Message);

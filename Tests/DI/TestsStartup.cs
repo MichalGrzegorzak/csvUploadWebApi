@@ -32,7 +32,7 @@ public class TestsStartup
         services.AddSingleton<DapperContext>();
         services.AddSingleton<Database>();
 			
-        services.AddScoped<ICallRepository, CallRepository>();
+        services.AddScoped<ICallsRepository, CallsRepository>();
 
         services.AddLogging(c => c.AddFluentMigratorConsole())
             .AddFluentMigratorCore()

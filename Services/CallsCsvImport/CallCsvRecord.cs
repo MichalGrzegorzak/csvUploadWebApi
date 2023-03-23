@@ -1,6 +1,6 @@
 namespace csvUploadServices;
 
-public class CallCsvImport
+public class CallCsvRecord
 {
     public string CallerId { get; set; }
     public string Recipient { get; set; }

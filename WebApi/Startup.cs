@@ -20,16 +20,20 @@ namespace csvUploadApi
 		
 		public virtual void ConfigureServices(IServiceCollection services)
 		{
+			//dapper
 			services.AddSingleton<DapperContext>();
 			services.AddSingleton<Database>();
 			
-			services.AddScoped<ICallRepository, CallRepository>();
-
+			//fluent migrator
 			services.AddLogging(c => c.AddFluentMigratorConsole())
 				.AddFluentMigratorCore()
 				.ConfigureRunner(c => c.AddSqlServer2016()
 					.WithGlobalConnectionString(Configuration.GetConnectionString("SqlConnection"))
 					.ScanIn(typeof(AddCallData).Assembly).For.Migrations());
+			
+			//other
+			services.AddScoped<ICallsRepository, CallsRepository>();
+			services.AddScoped<ICallsCsvImport, CallsCsvImport>();
 
 			services.AddControllers();
 			services.AddEndpointsApiExplorer();
@@ -42,7 +46,11 @@ namespace csvUploadApi
 			{
 				app.UseDeveloperExceptionPage();
 				app.UseSwagger();
-				app.UseSwaggerUI();
+				app.UseSwaggerUI(c =>
+				{
+					c.SwaggerEndpoint("v1/swagger.json", "V1 Docs");
+					c.DisplayRequestDuration();
+				});
 			}
 
 			app.UseRouting();
