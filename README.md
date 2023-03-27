@@ -19,4 +19,4 @@
 4. In Test include LocalDB as a file
 5. Use Hangfire instead of own BackgroundService
 6. Return ticket for user, then on different endpoint by passing ticket, user could see import results
-7. AWS Lambda
+7. Deploy on AWS Lambda after tweaks
