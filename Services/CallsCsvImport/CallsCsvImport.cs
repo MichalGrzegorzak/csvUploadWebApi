@@ -18,7 +18,7 @@ public class CallsCsvImport : ICallsCsvImport
 {
     private readonly DapperContext _context;
     private readonly ICallsRepository _repo;
-    const int BatchSize = 100_000_000;
+    const int BatchSize = 100_000;
     
     public CallsCsvImport(DapperContext context, ICallsRepository repo)
     {
@@ -57,6 +57,8 @@ public class CallsCsvImport : ICallsCsvImport
                 dataList = new List<CallData>();
             }
         }
+        
+        connection.BulkInsert(dataList);
         
         return totalRecords;
     }

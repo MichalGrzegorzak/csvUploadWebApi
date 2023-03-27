@@ -38,6 +38,4 @@ public class CallCsvImportTest : IClassFixture<DiFixture>
 
         callData.CallStart.Should().Be(expectedDate);
     }
-
-
 }

@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace csvUploadTest.IntegrationTests;
 
+[Collection("Sequence")]
 public class CallRepositoryTest : IClassFixture<DatabaseFixture>
 {
     private readonly ICallsRepository _callsRepository;

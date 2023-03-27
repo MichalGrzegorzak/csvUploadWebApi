@@ -1,10 +1,7 @@
 using csvUploadApi;
-using csvUploadApi.Extensions;
-using csvUploadDomain.Context;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace csvUploadTest;
 
@@ -15,6 +12,13 @@ public class DiFixture : IDisposable
 
     public DiFixture()
     {
+        var webHostBuilder = InitDI();
+        server = new TestServer(webHostBuilder);
+        client = server.CreateClient();
+    }
+
+    private WebHostBuilder InitDI()
+    {
         var configuration = new ConfigurationBuilder()
             .SetBasePath(AppContext.BaseDirectory)
             .AddJsonFile("appsettings.json")
@@ -24,13 +28,7 @@ public class DiFixture : IDisposable
         webHostBuilder.UseConfiguration(configuration);
         webHostBuilder.UseStartup<Startup>();
 
-        server = new TestServer(webHostBuilder);
-        client = server.CreateClient();
-
-        var db = ServiceProvider.GetService<Database>();
-        db.CreateDatabase("CsvUploadTest");
-        
-        MigrationManager.Migrate("CsvUploadTest", server.Services);
+        return webHostBuilder;
     }
 
     public IServiceProvider ServiceProvider => server.Host.Services;

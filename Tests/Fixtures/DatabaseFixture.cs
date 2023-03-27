@@ -4,25 +4,27 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace csvUploadTest.IntegrationTests;
 
+/// <summary>
+/// Init's database for tests
+/// </summary>
 public class DatabaseFixture : DiFixture
 {
-    public DatabaseFixture()
+    public DatabaseFixture() : base()
     {
         Dapper = ServiceProvider.GetRequiredService<DapperContext>();
         Db = new Database(Dapper);
 
-        var name = "CsvUploadTest";
-        //Db.DropDatabase(name);
-        //Db.CreateDatabase(name);
-        
-        MigrationManager.Migrate(name, ServiceProvider);
-    }
-
-    public void Dispose()
-    {
-        // ... clean up test data from the database ...
+        InitDatabase(ServiceProvider);
     }
 
     public Database Db { get; private set; }
     public DapperContext Dapper { get; private set; }
+    
+    private void InitDatabase(IServiceProvider provider)
+    {
+        var dbName = "CsvUploadTest";
+        Db.DropDatabase(dbName);
+        Db.CreateDatabase(dbName);
+        MigrationManager.Migrate(dbName, provider);
+    }
 }
