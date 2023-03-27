@@ -1,6 +1,7 @@
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Loggers;
 using BenchmarkDotNet.Running;
+using csvUploadDomain.Context;
 using csvUploadServices.CallsCsvImport;
 using csvUploadTest.Benchmarks;
 using FluentAssertions;
@@ -10,21 +11,26 @@ using Xunit.Abstractions;
 namespace csvUploadTest.IntegrationTests;
 
 [Collection("Sequence")]
-public class CallsUploadTest : IClassFixture<InjectionFixture>
+public class CallsUploadTest : IClassFixture<DiFixture>
 {
     private readonly ICallsCsvImport _callsCsvImport;
     private readonly ITestOutputHelper _output;
+    private readonly Database _database;
     private const int FileSizeMultiplier = 100;
 
-    public CallsUploadTest(InjectionFixture injection, ITestOutputHelper output)
+    public CallsUploadTest(DiFixture di, ITestOutputHelper output)
     {
         _output = output;
-        _callsCsvImport = injection.ServiceProvider.GetService<ICallsCsvImport>() ?? throw new InvalidOperationException();
-
-        Task.Run(PrepareBigFileForNextTests).Wait();
+        _callsCsvImport = di.ServiceProvider.GetService<ICallsCsvImport>() ?? throw new InvalidOperationException();
+        _database = di.ServiceProvider.GetService<Database>();
+        
+        //fresh table for each test 
+        _database.TruncateTable("CallData");
+        
+        Task.Run(PrepareBigFileForTests).Wait();
     }
     
-    private async Task PrepareBigFileForNextTests()
+    private async Task PrepareBigFileForTests()
     {
         var path = "./TestData/techtest_cdr.csv";
         var bigFile = "./TestData/techtest_cdr_BIG.csv";
@@ -45,34 +51,34 @@ public class CallsUploadTest : IClassFixture<InjectionFixture>
     }
 
     [Fact]
-    public async Task T01_UploadCallCsvImportTest()
+    public async Task T01_CallsCsvImportPerBatchTest()
     {
         var path = "./TestData/techtest_cdr_BIG.csv";
         var stream = File.OpenRead(path);
         
-        var result = await _callsCsvImport.CallsCsvImportBatch(stream);
+        var result = await _callsCsvImport.CallsCsvImportPerBatch(stream);
         
         result.Should().Be(13035*FileSizeMultiplier-1);
     }
     
     [Fact]
-    public async Task T02_UploadCallCsvImportTest()
+    public async Task T02_UploadCallCsvImportInOneGoTest()
     {
         var path = "./TestData/techtest_cdr_BIG.csv";
         var stream = File.OpenRead(path);
         
-        var result = await _callsCsvImport.UploadCallCsvImportBulk(stream);
+        var result = await _callsCsvImport.UploadCallCsvImportInOneGo(stream);
         
         result.Should().Be(13035*FileSizeMultiplier-1);
     }
     
     [Fact]
-    public async Task T03_UploadCallCsvImportTest()
+    public async Task T03_UploadCallCsvImportByRecordTest()
     {
         var path = "./TestData/techtest_cdr_BIG.csv";
         var stream = File.OpenRead(path);
         
-        var result = await _callsCsvImport.UploadCallCsvImportBulk2(stream);
+          var result = await _callsCsvImport.UploadCallCsvImportByRecord(stream);
         
         result.Should().Be(13035*FileSizeMultiplier-1);
     }

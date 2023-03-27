@@ -7,6 +7,7 @@ namespace csvUploadServices;
 
 public interface ICallsRepository
 {
+    int Insert(CallData data);
     Task<IEnumerable<CallData>> GetCallsData(DateTime from, DateTime? to = null);
     Task<IEnumerable<CallData>> GetXLongestCalls(int xCalls, DateTime from, DateTime? to = null);
     Task<IEnumerable<DateCount>> GetNumberOfCallsPerDay(DateTime from, DateTime? to = null);
@@ -22,6 +23,17 @@ public class CallsRepository : ICallsRepository
     public CallsRepository(DapperContext context)
     {
         _context = context;
+    }
+
+    public int Insert(CallData data)
+    {
+        var sql =
+            "INSERT INTO [dbo].[CallData] ([Id],[CallerId],[Recipient],[CallStart],[CallEnd],[Duration],[Cost],[Reference],[Currency])" +
+            "VALUES (@Id,@CallerId,@Recipient,@CallStart,@CallEnd,@Duration,@Cost,@Reference,@Currency)";
+        
+        using var connection = _context.CreateConnection();
+        var rowsAffected = connection.Execute(sql, data);
+        return rowsAffected;
     }
 
     public async Task<IEnumerable<CallData>> GetCallsData(DateTime from, DateTime? to = null)

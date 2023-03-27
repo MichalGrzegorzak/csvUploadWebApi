@@ -39,4 +39,11 @@ public class Database
             connection.Execute($"ALTER DATABASE {dbName} SET SINGLE_USER WITH ROLLBACK IMMEDIATE;" +
                                $"DROP DATABASE {dbName}");
     }
+    
+    public void TruncateTable(string tableName)
+    {
+        using var connection = _context.CreateConnection();
+
+        connection.Execute($"TRUNCATE TABLE {tableName}");
+    }
 }

@@ -9,22 +9,24 @@ namespace csvUploadServices.CallsCsvImport;
 
 public interface ICallsCsvImport
 {
-    Task<int> CallsCsvImportBatch(Stream fileStreamStream);
-    Task<int> UploadCallCsvImportBulk(Stream fileStream);
-    Task<int> UploadCallCsvImportBulk2(Stream fileStream);
+    Task<int> CallsCsvImportPerBatch(Stream fileStreamStream);
+    Task<int> UploadCallCsvImportInOneGo(Stream fileStream);
+    Task<int> UploadCallCsvImportByRecord(Stream fileStream);
 }
 
 public class CallsCsvImport : ICallsCsvImport
 {
     private readonly DapperContext _context;
-    const int BatchSize = 100_000;
+    private readonly ICallsRepository _repo;
+    const int BatchSize = 100_000_000;
     
-    public CallsCsvImport(DapperContext context)
+    public CallsCsvImport(DapperContext context, ICallsRepository repo)
     {
         _context = context;
+        _repo = repo;
     }
 
-    public async Task<int> CallsCsvImportBatch(Stream fileStream)
+    public async Task<int> CallsCsvImportPerBatch(Stream fileStream)
     {
         var connection = _context.CreateConnection();
         connection.UseBulkOptions(options =>
@@ -59,7 +61,7 @@ public class CallsCsvImport : ICallsCsvImport
         return totalRecords;
     }
     
-    public async Task<int> UploadCallCsvImportBulk(Stream fileStream)
+    public async Task<int> UploadCallCsvImportInOneGo(Stream fileStream)
     {
         var connection = _context.CreateConnection();
         var csv = GetCsvReader(fileStream);
@@ -71,9 +73,7 @@ public class CallsCsvImport : ICallsCsvImport
         {
             var record = csv.GetRecord<CallCsvRecord>();
             
-            var data = ParseCallCsvRecordToCallData(record);
-
-            dataList.Add(data);
+            dataList.Add(ParseCallCsvRecordToCallData(record));
             totalRecords++;
         }
         connection.BulkInsert(dataList);
@@ -81,20 +81,19 @@ public class CallsCsvImport : ICallsCsvImport
         return totalRecords;
     }
     
-    public async Task<int> UploadCallCsvImportBulk2(Stream fileStream)
+    public async Task<int> UploadCallCsvImportByRecord(Stream fileStream)
     {
-        var connection = _context.CreateConnection();
         var csv = GetCsvReader(fileStream);
         
-        var dataList = new List<CallData>();
+        var totalRecords = 0;
         
         await foreach (var record in csv.GetRecordsAsync<CallCsvRecord>())
         {
-            dataList.Add(ParseCallCsvRecordToCallData(record));
+            _repo.Insert(ParseCallCsvRecordToCallData(record));
+            totalRecords++;
         }
-        connection.BulkInsert(dataList);
         
-        return dataList.Count();
+        return totalRecords;
     }
 
     public CallData ParseCallCsvRecordToCallData(CallCsvRecord record)

@@ -117,7 +117,7 @@ public class CallsController : ControllerBase
             
             try
             {
-                await importer.CallsCsvImportBatch(stream);
+                await importer.CallsCsvImportPerBatch(stream);
             }
             catch(Exception ex)
             {
@@ -135,7 +135,7 @@ public class CallsController : ControllerBase
         try
         {
             var fileStream = files[0].OpenReadStream();
-            var result = await _callsCsvImport.UploadCallCsvImportBulk(fileStream);
+            var result = await _callsCsvImport.UploadCallCsvImportInOneGo(fileStream);
             return Ok(result);
         }
         catch (Exception ex)

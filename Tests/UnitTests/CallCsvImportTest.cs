@@ -6,14 +6,14 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace csvUploadTest.UnitTests;
 
-public class CallCsvImportTest : IClassFixture<InjectionFixture>
+public class CallCsvImportTest : IClassFixture<DiFixture>
 {
     private readonly CallsCsvImport _callsCsvImport;
 
-    public CallCsvImportTest(InjectionFixture injection)
+    public CallCsvImportTest(DiFixture di)
     {
-        var dapperContext = injection.ServiceProvider.GetService<DapperContext>() ?? throw new InvalidOperationException();
-        _callsCsvImport = new CallsCsvImport(dapperContext );
+        var dapperContext = di.ServiceProvider.GetService<DapperContext>() ?? throw new InvalidOperationException();
+        _callsCsvImport = new CallsCsvImport(dapperContext, null);
     }
     
     /// <summary>

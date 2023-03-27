@@ -36,18 +36,18 @@ public class CallsCsvImportBenchmarks
     [Benchmark]
     public async Task Upload1()
     {
-        await _callsCsvImport.CallsCsvImportBatch(File.OpenRead(_path));
+        await _callsCsvImport.CallsCsvImportPerBatch(File.OpenRead(_path));
     }
     [Benchmark]
     public async Task Upload2()
     {
-        await _callsCsvImport.UploadCallCsvImportBulk(File.OpenRead(_path));
+        await _callsCsvImport.UploadCallCsvImportInOneGo(File.OpenRead(_path));
     }
     
     [Benchmark]
     public async Task Upload3()
     {
-        await _callsCsvImport.UploadCallCsvImportBulk2(File.OpenRead(_path));
+        await _callsCsvImport.UploadCallCsvImportByRecord(File.OpenRead(_path));
     }
 }
 

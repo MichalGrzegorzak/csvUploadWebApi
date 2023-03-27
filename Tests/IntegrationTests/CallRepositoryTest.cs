@@ -1,5 +1,3 @@
-using csvUploadApi.Extensions;
-using csvUploadDomain.Context;
 using csvUploadDomain.Extensions;
 using csvUploadServices;
 using FluentAssertions;
@@ -13,7 +11,6 @@ public class CallRepositoryTest : IClassFixture<DatabaseFixture>
 
     public CallRepositoryTest(DatabaseFixture injection)
     {
-        
         _callsRepository = injection.ServiceProvider.GetService<ICallsRepository>() ?? throw new InvalidOperationException();
     }
 
@@ -38,25 +35,4 @@ public class CallRepositoryTest : IClassFixture<DatabaseFixture>
         var to = toDate.ParseDateTime("dd/MM/yyyy HH:mm");
         return (from, to);
     }
-}
-
-public class DatabaseFixture : InjectionFixture
-{
-    public DatabaseFixture()
-    {
-        Dapper = ServiceProvider.GetRequiredService<DapperContext>();
-        Db = new Database(Dapper);
-        MigrationManager.Migrate(ServiceProvider);
-        //CallsRepo = new CallsRepository(Dapper);
-        // ... initialize data in the test database ...
-    }
-
-    public void Dispose()
-    {
-        // ... clean up test data from the database ...
-    }
-
-    public Database Db { get; private set; }
-    public DapperContext Dapper { get; private set; }
-    //public ICallsRepository CallsRepo { get; private set; }
 }
