@@ -17,6 +17,11 @@ namespace csvUploadApi
 				.ConfigureWebHostDefaults(webBuilder =>
 				{
 					webBuilder.UseStartup<Startup>();
+					webBuilder.ConfigureKestrel(serverOptions =>
+					{
+						serverOptions.Limits.MaxRequestBodySize = 200_000_000;
+					});
+					
 				});
 	}
 }

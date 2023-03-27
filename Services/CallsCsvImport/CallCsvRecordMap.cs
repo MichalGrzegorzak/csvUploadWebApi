@@ -1,6 +1,6 @@
 using System.Globalization;
 
-namespace csvUploadServices;
+namespace csvUploadServices.CallsCsvImport;
 
 public sealed class CallCsvRecordMap : CsvHelper.Configuration.ClassMap<CallCsvRecord>
 {

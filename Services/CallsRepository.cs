@@ -12,7 +12,6 @@ public interface ICallsRepository
     Task<IEnumerable<DateCount>> GetNumberOfCallsPerDay(DateTime from, DateTime? to = null);
     
     Task<decimal?> GetAvgNumberOfCalls(DateTime from, DateTime? to = null);
-    //
     Task<decimal?> GetAvgCallCost(DateTime from, DateTime? to = null);
 }
 
@@ -34,7 +33,7 @@ public class CallsRepository : ICallsRepository
 
         using var connection = _context.CreateConnection();
         
-        var calls = await connection.QueryAsync<CallData>(query, new { from, to.Value});
+        var calls = await connection.QueryAsync<CallData>(query, new { from, to});
         return calls.ToList();
     }
     

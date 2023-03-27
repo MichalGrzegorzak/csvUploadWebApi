@@ -1,5 +1,6 @@
-using csvUploadDomain.Entities;
 using csvUploadServices;
+using csvUploadServices.BackgroundTask;
+using csvUploadServices.CallsCsvImport;
 using Microsoft.AspNetCore.Mvc;
 
 namespace csvUploadApi.Controllers;
@@ -11,14 +12,16 @@ public class CallsController : ControllerBase
     private readonly ILogger<CallsController> _logger;
     private readonly ICallsRepository _callsRepo;
     private readonly ICallsCsvImport _callsCsvImport;
+    private readonly IBackgroundTaskQueue _backgroundTaskQueue;
 
-    public CallsController(ILogger<CallsController> logger, ICallsRepository callsRepo, ICallsCsvImport callsCsvImport)
+    public CallsController(ILogger<CallsController> logger, ICallsRepository callsRepo, ICallsCsvImport callsCsvImport, IBackgroundTaskQueue backgroundTaskQueue)
     {
         _logger = logger;
         _callsRepo = callsRepo;
         _callsCsvImport = callsCsvImport;
+        _backgroundTaskQueue = backgroundTaskQueue;
     }
-
+    
     [HttpGet]
     public async Task<IActionResult> GetCalls([FromQuery]CallsRequestDto dto)
     {
@@ -97,22 +100,32 @@ public class CallsController : ControllerBase
             return StatusCode(500, ex.Message);
         }
     }
-    
+
     [HttpPost]
     [Route("UploadCsvPerBatch")]
+    //[DisableRequestSizeLimit, RequestFormLimits(MultipartBodyLengthLimit = int.MaxValue, ValueLengthLimit = int.MaxValue)]
     public async Task<IActionResult> UploadCsvPerBatch([FromForm] IFormFileCollection files)
     {
-        try
+        var filePath = await SaveFileToTempFolder(files[0]);
+        
+        _backgroundTaskQueue.EnqueueTask(async (serviceScopeFactory, _) =>
         {
-            var fileStream = files[0].OpenReadStream();
-            var result = await _callsCsvImport.UploadCallCsvImport(fileStream);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "UploadCsv");
-            return StatusCode(500, ex.Message);
-        }
+            using var scope = serviceScopeFactory.CreateScope();
+            var importer = scope.ServiceProvider.GetRequiredService<ICallsCsvImport>();
+            var logger = scope.ServiceProvider.GetRequiredService<ILogger<CallsController>>();
+            await using var stream = System.IO.File.Open(filePath, new FileStreamOptions { Options = FileOptions.DeleteOnClose });
+            
+            try
+            {
+                await importer.CallsCsvImportBatch(stream);
+            }
+            catch(Exception ex)
+            {
+                logger.LogError(ex, "UploadCallCsvImport failed");
+            }
+        });
+        
+        return Ok($"Import started in background, filePath:{filePath}");
     }
     
     [HttpPost]
@@ -122,7 +135,7 @@ public class CallsController : ControllerBase
         try
         {
             var fileStream = files[0].OpenReadStream();
-            var result = _callsCsvImport.UploadCallCsvImportBulk(fileStream);
+            var result = await _callsCsvImport.UploadCallCsvImportBulk(fileStream);
             return Ok(result);
         }
         catch (Exception ex)
@@ -130,6 +143,15 @@ public class CallsController : ControllerBase
             _logger.LogError(ex, "UploadCsv2");
             return StatusCode(500, ex.Message);
         }
+    }
+    
+    static async Task<string> SaveFileToTempFolder(IFormFile file)
+    {
+        var filePath = Path.GetTempFileName();
+
+        await using var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write);
+        await file.CopyToAsync(fileStream);
+        return filePath;
     }
 }
 

@@ -5,35 +5,34 @@ using csvUploadDomain.Context;
 using csvUploadDomain.Entities;
 using Z.Dapper.Plus;
 
-namespace csvUploadServices;
+namespace csvUploadServices.CallsCsvImport;
 
 public interface ICallsCsvImport
 {
-    Task<int> UploadCallCsvImport(Stream file);
-    Task<int> UploadCallCsvImportBulk(Stream file);
-    Task<int> UploadCallCsvImportBulk2(Stream file);
+    Task<int> CallsCsvImportBatch(Stream fileStreamStream);
+    Task<int> UploadCallCsvImportBulk(Stream fileStream);
+    Task<int> UploadCallCsvImportBulk2(Stream fileStream);
 }
 
 public class CallsCsvImport : ICallsCsvImport
 {
     private readonly DapperContext _context;
+    const int BatchSize = 100_000;
     
     public CallsCsvImport(DapperContext context)
     {
         _context = context;
     }
 
-    public async Task<int> UploadCallCsvImport(Stream file)
+    public async Task<int> CallsCsvImportBatch(Stream fileStream)
     {
-        var batchSize = 10000;
-        
         var connection = _context.CreateConnection();
         connection.UseBulkOptions(options =>
         {
-            options.BatchSize = batchSize;
+            options.BatchSize = BatchSize;
         });
         
-        var csv = GetCsvReader(file);
+        var csv = GetCsvReader(fileStream);
         
         var totalRecords = 0;
         var batchCounter = 0;
@@ -43,13 +42,13 @@ public class CallsCsvImport : ICallsCsvImport
         {
             var record = csv.GetRecord<CallCsvRecord>();
             
-            var data = ParseRecordToCallData(record);
+            var data = ParseCallCsvRecordToCallData(record);
             
             dataList.Add(data);
             totalRecords++;
             batchCounter++;
 
-            if (batchCounter == batchSize)
+            if (batchCounter == BatchSize)
             {
                 connection.BulkInsert(dataList);
                 batchCounter = 0;
@@ -60,10 +59,10 @@ public class CallsCsvImport : ICallsCsvImport
         return totalRecords;
     }
     
-    public async Task<int> UploadCallCsvImportBulk(Stream file)
+    public async Task<int> UploadCallCsvImportBulk(Stream fileStream)
     {
         var connection = _context.CreateConnection();
-        var csv = GetCsvReader(file);
+        var csv = GetCsvReader(fileStream);
         
         var totalRecords = 0;
         var dataList = new List<CallData>();
@@ -72,7 +71,7 @@ public class CallsCsvImport : ICallsCsvImport
         {
             var record = csv.GetRecord<CallCsvRecord>();
             
-            var data = ParseRecordToCallData(record);
+            var data = ParseCallCsvRecordToCallData(record);
 
             dataList.Add(data);
             totalRecords++;
@@ -82,25 +81,26 @@ public class CallsCsvImport : ICallsCsvImport
         return totalRecords;
     }
     
-    public async Task<int> UploadCallCsvImportBulk2(Stream file)
+    public async Task<int> UploadCallCsvImportBulk2(Stream fileStream)
     {
         var connection = _context.CreateConnection();
-        var csv = GetCsvReader(file);
+        var csv = GetCsvReader(fileStream);
         
         var dataList = new List<CallData>();
         
         await foreach (var record in csv.GetRecordsAsync<CallCsvRecord>())
         {
-            dataList.Add(ParseRecordToCallData(record));
+            dataList.Add(ParseCallCsvRecordToCallData(record));
         }
         connection.BulkInsert(dataList);
         
         return dataList.Count();
     }
 
-    private CallData ParseRecordToCallData(CallCsvRecord record)
+    public CallData ParseCallCsvRecordToCallData(CallCsvRecord record)
     {
         var endDate = record.CallDate.ToDateTime(record.EndTime);
+        
         var timeSpan = new TimeSpan(0, 0, 0, record.Duration);
         var timeStarted = record.EndTime.Add(-timeSpan);
         var startDate = record.CallDate.ToDateTime(timeStarted);
@@ -126,9 +126,9 @@ public class CallsCsvImport : ICallsCsvImport
         return data;
     }
 
-    private CsvReader GetCsvReader(Stream file)
+    private CsvReader GetCsvReader(Stream fileStream)
     {
-        var reader = new StreamReader(file);
+        var reader = new StreamReader(fileStream);
         
         var csv = new CsvReader(reader, GetCsvConfiguration());
         csv.Context.RegisterClassMap<CallCsvRecordMap>();

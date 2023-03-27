@@ -16,7 +16,7 @@ public class SeedCallData : Migration
 
     public override void Up()
     {
-        var today = DateTime.Today;
+        var today = new DateTime(2023, 3, 25);
         var yesterday = today.AddDays(-1);
         var twoDaysAgo = today.AddDays(-2);
         

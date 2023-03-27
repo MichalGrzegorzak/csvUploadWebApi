@@ -4,7 +4,13 @@ using CsvHelper.Configuration;
 
 namespace csvUploadServices;
 
-public class CsvImport
+
+public interface ICsvImport
+{
+    IList<T> ReadCsv<T>(Stream file);
+}
+
+public class CsvImport : ICsvImport
 {
     public IList<T> ReadCsv<T>(Stream file)
     {

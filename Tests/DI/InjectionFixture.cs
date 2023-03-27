@@ -12,17 +12,14 @@ public class InjectionFixture : IDisposable
 
     public InjectionFixture()
     {
-        var path = AppContext.BaseDirectory;
-        
         var configuration = new ConfigurationBuilder()
             .SetBasePath(AppContext.BaseDirectory)
             .AddJsonFile("appsettings.json")
             .Build();
         
         var webHostBuilder = new WebHostBuilder();
-        //webHostBuilder.ConfigureServices(s => s.AddDbContext<DatabaseContext>(options => options.UseNpgsql(configuration.GetConnectionString("DefaultConnection"))));
         webHostBuilder.UseConfiguration(configuration);
-        webHostBuilder.UseStartup<TestsStartup>();
+        webHostBuilder.UseStartup<Startup>();
 
         server = new TestServer(webHostBuilder);
         client = server.CreateClient();

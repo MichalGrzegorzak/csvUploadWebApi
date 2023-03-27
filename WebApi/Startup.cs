@@ -1,16 +1,14 @@
-using System.Reflection;
 using csvUploadDomain.Context;
 using csvUploadDomain.Migrations;
 using csvUploadServices;
+using csvUploadServices.BackgroundTask;
+using csvUploadServices.CallsCsvImport;
 using FluentMigrator.Runner;
 
 namespace csvUploadApi
 {
 	public class Startup
 	{
-		// public Startup()
-		// {
-		// }
 		public Startup(IConfiguration configuration)
 		{
 			Configuration = configuration;
@@ -20,9 +18,12 @@ namespace csvUploadApi
 		
 		public virtual void ConfigureServices(IServiceCollection services)
 		{
-			//dapper
 			services.AddSingleton<DapperContext>();
 			services.AddSingleton<Database>();
+			services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
+			
+			//background job
+			services.AddHostedService<BackgroundQueueHostedService>();
 			
 			//fluent migrator
 			services.AddLogging(c => c.AddFluentMigratorConsole())
@@ -34,7 +35,8 @@ namespace csvUploadApi
 			//other
 			services.AddScoped<ICallsRepository, CallsRepository>();
 			services.AddScoped<ICallsCsvImport, CallsCsvImport>();
-
+			services.AddScoped<ICsvImport, CsvImport>();
+			
 			services.AddControllers();
 			services.AddEndpointsApiExplorer();
 			services.AddSwaggerGen();
@@ -59,6 +61,10 @@ namespace csvUploadApi
 			{
 				endpoints.MapControllers();
 			});
+			// app.Run(async context =>
+			// {
+			// 	context.Features.Get<IHttpMaxRequestBodySizeFeature>()!.MaxRequestBodySize = 100_000_000;
+			// });
 		}
 	}
 }

@@ -25,7 +25,6 @@ public static class MigrationManager
             //we can revert to last stable
             migrationService.MigrateDown(202303211434);
         }
-        
 
         return host;
     }

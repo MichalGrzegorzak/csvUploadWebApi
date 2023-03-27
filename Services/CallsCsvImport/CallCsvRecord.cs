@@ -1,4 +1,4 @@
-namespace csvUploadServices;
+namespace csvUploadServices.CallsCsvImport;
 
 public class CallCsvRecord
 {
