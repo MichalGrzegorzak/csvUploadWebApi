@@ -10,7 +10,7 @@
 1. Dapper - haven't used it for a while, and wanted to give it a chance
 2. FluentMigration - Dapper lacks migrations functionalities so this was a must
 3. CsvHelper - think it's a best library to read/write CSV
-4. Did setup DI in Tests
+4. 'Real' DB (LocalDB) as In-Memory database can't really be trusted
 
 ### What I would add:
 1. Global error handling
